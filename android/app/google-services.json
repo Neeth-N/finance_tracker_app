@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "228540623446",
+    "project_id": "fianace-tracker-app",
+    "storage_bucket": "fianace-tracker-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:228540623446:android:6a011db60442d36164e9f7",
+        "android_client_info": {
+          "package_name": "com.example.finance_tracker_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBI9pCta3hdNE0TURSyM2VfkZ7aaZiipv4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
