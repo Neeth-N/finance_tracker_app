@@ -1,204 +1,430 @@
 import 'dart:math';
-
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:intl/intl.dart'; // Import this for date formatting
 import '../Models/project.dart';
 import '../Models/transaction.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'chart_screen.dart';
 
-class ProjectDetailsScreen extends StatelessWidget {
+
+class ProjectDetailsScreen extends StatefulWidget {
   final Project project;
 
   ProjectDetailsScreen({required this.project});
 
   @override
-  Widget build(BuildContext context) {
-    final firestore.DocumentReference projectDoc = firestore.FirebaseFirestore.instance.collection('projects').doc(project.id);
+  _ProjectDetailsScreenState createState() => _ProjectDetailsScreenState();
+}
 
+class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
+  bool _showCurrentAmount = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final firestore.DocumentReference projectDoc = firestore.FirebaseFirestore.instance.collection('projects').doc(widget.project.id);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(title: Text(project.name)),
+      appBar: AppBar(title: Text(widget.project.name)),
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: BottomNavigationBar(
           backgroundColor: Theme.of(context).colorScheme.tertiary,
-          showSelectedLabels:false,
+          showSelectedLabels: false,
           showUnselectedLabels: false,
           selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
           elevation: 3,
           items: const [
             BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home'
+              icon: Icon(Icons.home),
+              label: 'Home',
             ),
             BottomNavigationBarItem(
-                icon: Icon(Icons.auto_graph_outlined),
-                label: 'Graph'
-            )
+              icon: Icon(Icons.auto_graph_outlined),
+              label: 'Graph',
+            ),
           ],
         ),
       ),
-      body: StreamBuilder<firestore.DocumentSnapshot>(
-        stream: projectDoc.snapshots(),
-        builder: (context, projectSnapshot) {
-          if (!projectSnapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final updatedProject = Project.fromFirestore(projectSnapshot.data!);
-
-          return Column(
-            children: [
-              Container(
-                width: MediaQuery.of(context).size.width-20,
-                  height: MediaQuery.of(context).size.width/2,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFE064F7),
-                        Color(0xFF00B2E7)
-                      ],
-                      transform: GradientRotation(pi/4)
-                    ),
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow:[
-                      BoxShadow(
-                        blurRadius: 2,
-                        color: Colors.grey.shade400,
-                        offset: Offset(3,4)
-                    )
-                    ]
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('Current Amount', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),),
-                      Text('₹${updatedProject.currentAmount.toString()}',style: TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 20,),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 45),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white30,
-                                    shape: BoxShape.circle
-                                  ),
-                                  child: const Center(
-                                    child: Icon(Icons.arrow_downward_outlined, size: 18, color: Colors.greenAccent),
-                                  ),
-                                ),
-                                SizedBox(width: 8,),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('Incomes', style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w400),),
-                                    Text('₹${updatedProject.incAmount.toString()}',style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600)),
-                                  ],
-                                )
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: const BoxDecoration(
-                                      color: Colors.white30,
-                                      shape: BoxShape.circle
-                                  ),
-                                  child: const Center(
-                                    child: Icon(Icons.arrow_upward_outlined, size: 18, color: Colors.red),
-                                  ),
-                                ),
-                                SizedBox(width: 8,),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('Expenses', style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w400),),
-                                    Text('₹${updatedProject.decAmount.toString()}',style: TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600)),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  )
-              ),
-              SizedBox(height: 12,),
-              Text('Transactions', style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),),
-              Expanded(
-                child: StreamBuilder<firestore.QuerySnapshot>(
-                  stream: firestore.FirebaseFirestore.instance
-                      .collection('transactions')
-                      .where('projectId', isEqualTo: project.id)
-                      .snapshots(),
-                  builder: (context, transactionSnapshot) {
-                    if (!transactionSnapshot.hasData) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-
-                    var transactions = transactionSnapshot.data!.docs.map((doc) => Transaction.fromFirestore(doc)).toList();
-
-                    return ListView.builder(
-                      itemCount: transactions.length,
-                      itemBuilder: (context, index) {
-                        var transaction = transactions[index];
-                        return Padding(
-                          padding: const EdgeInsets.all(6.0),
-                          child: Container(
-                            // height: 75,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(12)
-                            ),
-                            child: ListTile(
-                              title: Text(transaction.description),
-                              subtitle: Text('Amount: ₹${transaction.amount.toString()}'),
-                              trailing: IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () => _showEditTransactionDialog(context, transaction, updatedProject),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+      body:buildStreamBuilder(projectDoc),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        width: 75,
-        height: 75,
-        child: FloatingActionButton(
-          shape: const CircleBorder(),
-          onPressed: () => _showAddTransactionDialog(context, projectDoc),
-          child: Container(
-            width: 75,
-            height: 75,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFE064F7),
-                    Color(0xFF00B2E7)
-                  ],
-                  transform: GradientRotation(pi/4)
+      floatingActionButton: _buildAddTransactionButton(context, projectDoc),
+    );
+  }
+
+  StreamBuilder<firestore.DocumentSnapshot<Object?>> buildStreamBuilder(firestore.DocumentReference<Object?> projectDoc) {
+    return StreamBuilder<firestore.DocumentSnapshot>(
+      stream: projectDoc.snapshots(),
+      builder: (context, projectSnapshot) {
+        if (!projectSnapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (projectSnapshot.hasError) {
+          return Center(child: Text('Error: ${projectSnapshot.error}'));
+        }
+
+        final updatedProject = Project.fromFirestore(projectSnapshot.data!);
+
+        return Column(
+          children: [
+            _buildProjectSummary(context, updatedProject),
+            const SizedBox(height: 12),
+            _buildTransactionListHeader(context),
+            Expanded(
+              child: StreamBuilder<firestore.QuerySnapshot>(
+                stream: firestore.FirebaseFirestore.instance
+                    .collection('transactions')
+                    .where('projectId', isEqualTo: widget.project.id)
+                    .snapshots(),
+                builder: (context, transactionSnapshot) {
+                  if (!transactionSnapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (transactionSnapshot.hasError) {
+                    return Center(child: Text('Error: ${transactionSnapshot.error}'));
+                  }
+
+                  var transactions = transactionSnapshot.data!.docs.map((doc) => Transaction.fromFirestore(doc)).toList();
+
+                  return _buildTransactionList(context, transactions, updatedProject);
+                },
               ),
             ),
-            child: const Icon(Icons.add, color: Colors.white, size: 30),
+          ],
+        );
+      },
+    );
+  }
+
+  // StreamBuilder<firestore.DocumentSnapshot<Object?>> buildPieChartStreamBuilder(firestore.DocumentReference<Object?> projectDoc) {
+  //   return StreamBuilder<firestore.DocumentSnapshot>(
+  //     stream: projectDoc.snapshots(),
+  //     builder: (context, projectSnapshot) {
+  //       if (!projectSnapshot.hasData) {
+  //         return Center(child: CircularProgressIndicator());
+  //       }
+  //
+  //       if (projectSnapshot.hasError) {
+  //         return Center(child: Text('Error: ${projectSnapshot.error}'));
+  //       }
+  //
+  //       final updatedProject = Project.fromFirestore(projectSnapshot.data!);
+  //
+  //       return Padding(
+  //         padding: const EdgeInsets.all(16.0),
+  //         child: PieChart(
+  //           PieChartData(
+  //             sections: [
+  //               PieChartSectionData(
+  //                 value: updatedProject.incAmount,
+  //                 color: Colors.greenAccent,
+  //                 title: 'Incomes',
+  //                 radius: 50,
+  //                 titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
+  //               ),
+  //               PieChartSectionData(
+  //                 value: updatedProject.decAmount,
+  //                 color: Colors.red,
+  //                 title: 'Expenses',
+  //                 radius: 50,
+  //                 titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
+  //               ),
+  //             ],
+  //             borderData: FlBorderData(show: false),
+  //             sectionsSpace: 0,
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  Widget _buildProjectSummary(BuildContext context, Project updatedProject) {
+    return Container(
+      width: MediaQuery.of(context).size.width - 20,
+      height: MediaQuery.of(context).size.width / 2,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFE064F7),
+            Color(0xFF00B2E7),
+          ],
+          transform: GradientRotation(pi / 4),
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 2,
+            color: Colors.grey.shade400,
+            offset: const Offset(3, 4),
           ),
+        ],
+      ),
+      child: GestureDetector(
+        onDoubleTap: () {
+          setState(() {
+            _showCurrentAmount = !_showCurrentAmount;
+          });
+        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+             Text(
+              //'Current Amount',
+              _showCurrentAmount ? 'Current Amount' : 'Initial Amount',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              '₹${_showCurrentAmount ? updatedProject.currentAmount : updatedProject.initialAmount}',
+              style: const TextStyle(
+                fontSize: 40,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildIncomeExpenseRow(context, updatedProject),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIncomeExpenseRow(BuildContext context, Project updatedProject) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 45),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildIncomeExpenseItem(
+            context,
+            icon: Icons.arrow_downward_outlined,
+            iconColor: Colors.greenAccent,
+            title: 'Incomes',
+            amount: updatedProject.incAmount,
+          ),
+          _buildIncomeExpenseItem(
+            context,
+            icon: Icons.arrow_upward_outlined,
+            iconColor: Colors.red,
+            title: 'Expenses',
+            amount: -updatedProject.decAmount,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncomeExpenseItem(
+      BuildContext context, {
+        required IconData icon,
+        required Color iconColor,
+        required String title,
+        required double amount,
+      }) {
+    return Row(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Icon(
+              icon,
+              size: 18,
+              color: iconColor,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            Text(
+              '₹$amount',
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionListHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 11.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Transactions',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PieChartScreen(project: widget.project),
+                    ),
+                  );
+                },
+                child: Text(
+                  'View Chart',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionList(BuildContext context, List<Transaction> transactions, Project updatedProject) {
+    return ListView.builder(
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        var transaction = transactions[index];
+        return Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: Slidable(
+            key: Key(transaction.id),
+            endActionPane: ActionPane(
+              motion: const DrawerMotion(),
+              children: [
+                SlidableAction(
+                  onPressed: (context) => _showEditTransactionDialog(context, transaction, updatedProject),
+                  backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                  foregroundColor: Theme.of(context).colorScheme.surface,
+                  icon: Icons.edit,
+                  label: 'Edit',
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+              child: Container(
+                width: MediaQuery.of(context).size.width - 30,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.tertiary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: transaction.amount < 0 ? Colors.red.withOpacity(0.2) : Colors.greenAccent.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        transaction.amount < 0 ? Icons.arrow_upward_outlined : Icons.arrow_downward_outlined,
+                        color: transaction.amount < 0 ? Colors.red : Colors.greenAccent,
+                      ),
+                    ),
+                  ),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          transaction.description,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '₹${transaction.amount}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: transaction.amount < 0 ? Colors.red : Colors.greenAccent,
+                            ),
+                          ),
+                          Text(
+                            DateFormat('dd MMM yyyy').format(transaction.date), // Format date as needed
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAddTransactionButton(BuildContext context, firestore.DocumentReference projectDoc) {
+    return Container(
+      width: 75,
+      height: 75,
+      child: FloatingActionButton(
+        shape: const CircleBorder(),
+        onPressed: () => _showAddTransactionDialog(context, projectDoc),
+        child: Container(
+          width: 75,
+          height: 75,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFFE064F7),
+                Color(0xFF00B2E7),
+              ],
+              transform: GradientRotation(pi / 4),
+            ),
+          ),
+          child: const Icon(Icons.add, color: Colors.white, size: 30),
         ),
       ),
     );
@@ -211,16 +437,16 @@ class ProjectDetailsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Create Transaction'),
+        title: const Text('Create Transaction'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(labelText: 'Description'),
               onChanged: (value) => description = value,
             ),
             TextField(
-              decoration: InputDecoration(labelText: 'Amount'),
+              decoration: const InputDecoration(labelText: 'Amount'),
               keyboardType: TextInputType.number,
               onChanged: (value) => amount = double.tryParse(value) ?? 0,
             ),
@@ -229,7 +455,7 @@ class ProjectDetailsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -238,13 +464,13 @@ class ProjectDetailsScreen extends StatelessWidget {
                   'description': description,
                   'amount': amount,
                   'date': firestore.Timestamp.now(),
-                  'projectId': projectDoc.id,
+                  'projectId': widget.project.id,
                 });
-                if(amount<0){
+                if (amount < 0) {
                   projectDoc.update({
                     'decAmount': firestore.FieldValue.increment(amount),
                   });
-                }else{
+                } else {
                   projectDoc.update({
                     'incAmount': firestore.FieldValue.increment(amount),
                   });
@@ -255,7 +481,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                 Navigator.pop(context);
               }
             },
-            child: Text('Create'),
+            child: const Text('Create'),
           ),
         ],
       ),
@@ -270,17 +496,17 @@ class ProjectDetailsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Transaction'),
+        title: const Text('Edit Transaction'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(labelText: 'Description'),
               onChanged: (value) => description = value,
               controller: TextEditingController(text: transaction.description),
             ),
             TextField(
-              decoration: InputDecoration(labelText: 'Amount'),
+              decoration: const InputDecoration(labelText: 'Amount'),
               keyboardType: TextInputType.number,
               onChanged: (value) => amount = double.tryParse(value) ?? transaction.amount,
               controller: TextEditingController(text: transaction.amount.toString()),
@@ -290,7 +516,7 @@ class ProjectDetailsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -300,11 +526,11 @@ class ProjectDetailsScreen extends StatelessWidget {
                   'description': description,
                   'amount': amount,
                 });
-                if(amount<0){
+                if (amount < 0) {
                   projectDoc.update({
                     'decAmount': firestore.FieldValue.increment(amountDifference),
                   });
-                }else{
+                } else {
                   projectDoc.update({
                     'incAmount': firestore.FieldValue.increment(amountDifference),
                   });
@@ -315,7 +541,7 @@ class ProjectDetailsScreen extends StatelessWidget {
                 Navigator.pop(context);
               }
             },
-            child: Text('Update'),
+            child: const Text('Update'),
           ),
         ],
       ),

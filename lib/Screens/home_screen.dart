@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: index == 0 ? main_screen(projectsCollection: projectsCollection) : setting_screen(),
+      body: index == 0 ? MainScreen(projectsCollection: projectsCollection) : setting_screen(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         width: 75,
