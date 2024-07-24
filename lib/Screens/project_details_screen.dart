@@ -27,28 +27,28 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(title: Text(widget.project.name)),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        child: BottomNavigationBar(
-          backgroundColor: Theme.of(context).colorScheme.tertiary,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
-          elevation: 3,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.auto_graph_outlined),
-              label: 'Graph',
-            ),
-          ],
-        ),
-      ),
+      // bottomNavigationBar: ClipRRect(
+      //   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      //   child: BottomNavigationBar(
+      //     backgroundColor: Theme.of(context).colorScheme.tertiary,
+      //     showSelectedLabels: false,
+      //     showUnselectedLabels: false,
+      //     selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
+      //     elevation: 3,
+      //     items: const [
+      //       BottomNavigationBarItem(
+      //         icon: Icon(Icons.home),
+      //         label: 'Home',
+      //       ),
+      //       BottomNavigationBarItem(
+      //         icon: Icon(Icons.auto_graph_outlined),
+      //         label: 'Graph',
+      //       ),
+      //     ],
+      //   ),
+      // ),
       body:buildStreamBuilder(projectDoc),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildAddTransactionButton(context, projectDoc),
     );
   }
@@ -410,7 +410,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       height: 75,
       child: FloatingActionButton(
         shape: const CircleBorder(),
-        onPressed: () => _showAddTransactionDialog(context, projectDoc),
+        onPressed: () => _showTransactionDialog(context, projectDoc),
         child: Container(
           width: 75,
           height: 75,
@@ -430,62 +430,118 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     );
   }
 
-  void _showAddTransactionDialog(BuildContext context, firestore.DocumentReference projectDoc) {
+  void _showTransactionDialog(BuildContext context, firestore.DocumentReference projectDoc, {Transaction? transaction, Project? updatedProject}) {
     String description = '';
-    double amount = 0;
+    double? amount = null;
+    String transactionType = 'income';
+    final firestore.DocumentReference projectRef = firestore.FirebaseFirestore.instance.collection('projects').doc(projectDoc.id);
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Create Transaction'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(labelText: 'Description'),
-              onChanged: (value) => description = value,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Create Transaction'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'Description'),
+                onChanged: (value) => description = value,
+              ),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Amount'),
+                keyboardType: TextInputType.number,
+                onChanged: (value) => amount = double.tryParse(value),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text(
+                        'Income',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      value: 'income',
+                      groupValue: transactionType,
+                      onChanged: (value) {
+                        setState(() {
+                          transactionType = value!;
+                        });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text(
+                        'Expense',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                      value: 'expense',
+                      groupValue: transactionType,
+                      onChanged: (value) {
+                        setState(() {
+                          transactionType = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
-            TextField(
-              decoration: const InputDecoration(labelText: 'Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) => amount = double.tryParse(value) ?? 0,
+            TextButton(
+              onPressed: () {
+                if (description.isNotEmpty && amount != null && amount != 0) {
+                  _createTransaction(description, amount!, projectDoc, transactionType);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Create'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (description.isNotEmpty && amount != 0) {
-                firestore.FirebaseFirestore.instance.collection('transactions').add({
-                  'description': description,
-                  'amount': amount,
-                  'date': firestore.Timestamp.now(),
-                  'projectId': widget.project.id,
-                });
-                if (amount < 0) {
-                  projectDoc.update({
-                    'decAmount': firestore.FieldValue.increment(amount),
-                  });
-                } else {
-                  projectDoc.update({
-                    'incAmount': firestore.FieldValue.increment(amount),
-                  });
-                }
-                projectDoc.update({
-                  'currentAmount': firestore.FieldValue.increment(amount),
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
       ),
     );
+  }
+
+  void _createTransaction(String description, double amount, firestore.DocumentReference projectDoc, String transactionType) {
+    firestore.FirebaseFirestore.instance.collection('transactions').add({
+      'description': description,
+      'amount': transactionType == 'expense' ? -amount : amount,
+      'date': firestore.Timestamp.now(),
+      'projectId': projectDoc.id,
+      'type': transactionType,
+    });
+    _updateProjectAmounts(projectDoc, amount, transactionType);
+  }
+
+  void _updateTransaction(Transaction transaction, String description, double amount, firestore.DocumentReference projectDoc, String transactionType) {
+    double amountDifference = transactionType == 'expense' ? -amount : amount - transaction.amount;
+    firestore.FirebaseFirestore.instance.collection('transactions').doc(transaction.id).update({
+      'description': description,
+      'amount': transactionType == 'expense' ? -amount : amount,
+      'type': transactionType,
+    });
+    _updateProjectAmounts(projectDoc, amountDifference, transactionType);
+  }
+
+  void _updateProjectAmounts(firestore.DocumentReference projectDoc, double amount, String transactionType) {
+    if (transactionType == 'expense') {
+      projectDoc.update({
+        'decAmount': firestore.FieldValue.increment(-amount),
+        'currentAmount': firestore.FieldValue.increment(-amount),
+      });
+    } else {
+      projectDoc.update({
+        'incAmount': firestore.FieldValue.increment(amount),
+        'currentAmount': firestore.FieldValue.increment(amount),
+      });
+    }
   }
 
   void _showEditTransactionDialog(BuildContext context, Transaction transaction, Project updatedProject) {

@@ -1,6 +1,5 @@
 import 'dart:math';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:finance_tracker_app/Screens/project_details_screen.dart';
 import 'package:finance_tracker_app/Screens/setting_screen.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final CollectionReference projectsCollection = FirebaseFirestore.instance.collection('projects');
+ final firestore.CollectionReference projectsCollection = firestore.FirebaseFirestore.instance.collection('projects');
 
   int index = 0;
 
@@ -111,7 +110,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   'initialAmount': initialAmount,
                   'currentAmount': initialAmount,
                   'incAmount' : 0,
-                  'decAmount' : 0
+                  'decAmount' : 0,
+                  'date': firestore.Timestamp.now(),
                 });
                 Navigator.pop(context);
               }
