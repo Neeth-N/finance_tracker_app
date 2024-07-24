@@ -2,21 +2,35 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:finance_tracker_app/Screens/project_details_screen.dart';
+import 'package:finance_tracker_app/Screens/setting_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../Models/project.dart';
+import 'main_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final CollectionReference projectsCollection = FirebaseFirestore.instance.collection('projects');
+
+  int index = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Projects'),backgroundColor: Colors.transparent,),
+      appBar: AppBar(backgroundColor: Colors.transparent,),
       backgroundColor: Theme.of(context).colorScheme.surface,
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: BottomNavigationBar(
+          onTap: (value){
+            setState((){
+              index = value;
+            });
+          },
           backgroundColor: Theme.of(context).colorScheme.tertiary,
           showSelectedLabels:false,
           showUnselectedLabels: false,
@@ -34,30 +48,7 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: StreamBuilder(
-        stream: projectsCollection.snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          var projects = snapshot.data!.docs.map((doc) => Project.fromFirestore(doc)).toList();
-
-          return ListView.builder(
-            itemCount: projects.length,
-            itemBuilder: (context, index) {
-              var project = projects[index];
-              return ListTile(
-                title: Text(project.name),
-                subtitle: Text('Current Amount: ₹${project.currentAmount.toString()}'),
-                onTap: () => Navigator.push(context, MaterialPageRoute(
-                  builder: (context) => ProjectDetailsScreen(project: project),
-                )),
-              );
-            },
-          );
-        },
-      ),
+      body: index == 0 ? main_screen(projectsCollection: projectsCollection) : setting_screen(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         width: 75,
@@ -132,3 +123,5 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
+
