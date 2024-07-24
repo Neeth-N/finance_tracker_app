@@ -12,13 +12,15 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Projects')),
+      appBar: AppBar(title: Text('Projects'),backgroundColor: Colors.transparent,),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: BottomNavigationBar(
-          backgroundColor: Colors.grey.shade300,
+          backgroundColor: Theme.of(context).colorScheme.tertiary,
           showSelectedLabels:false,
           showUnselectedLabels: false,
+          selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
           elevation: 3,
           items: const [
             BottomNavigationBarItem(
@@ -66,9 +68,9 @@ class HomeScreen extends StatelessWidget {
           child: Container(
             width: 75,
             height: 75,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                   colors: [
                     Color(0xFFE064F7),
                     Color(0xFF00B2E7)
@@ -76,7 +78,7 @@ class HomeScreen extends StatelessWidget {
                   transform: GradientRotation(pi/4)
               ),
             ),
-            child: Icon(Icons.add),
+            child: const Icon(Icons.add,color: Colors.white, size: 30,),
           ),
         ),
       ),
@@ -117,6 +119,8 @@ class HomeScreen extends StatelessWidget {
                   'name': projectName,
                   'initialAmount': initialAmount,
                   'currentAmount': initialAmount,
+                  'incAmount' : 0,
+                  'decAmount' : 0
                 });
                 Navigator.pop(context);
               }

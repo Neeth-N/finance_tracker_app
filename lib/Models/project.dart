@@ -5,8 +5,10 @@ class Project {
   String name;
   double initialAmount;
   double currentAmount;
+  double incAmount;
+  double decAmount;
 
-  Project({required this.id, required this.name, required this.initialAmount, required this.currentAmount});
+  Project({required this.id, required this.name, required this.initialAmount, required this.currentAmount, required this.decAmount, required this.incAmount});
 
   factory Project.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map;
@@ -15,6 +17,8 @@ class Project {
       name: data['name'] ?? '',
       initialAmount: data['initialAmount']?.toDouble() ?? 0.0,
       currentAmount: data['currentAmount']?.toDouble() ?? 0.0,
+      incAmount: data['incAmount']?.toDouble() ?? 0.0,
+      decAmount: data['decAmount']?.toDouble() ?? 0.0,
     );
   }
 
@@ -23,6 +27,8 @@ class Project {
       'name': name,
       'initialAmount': initialAmount,
       'currentAmount': currentAmount,
+      'incAmount' : incAmount,
+      'decAmount' : decAmount
     };
   }
 }
