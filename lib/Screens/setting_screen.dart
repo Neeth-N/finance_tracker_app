@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../Themes/theme_provider.dart';
@@ -14,10 +14,12 @@ class setting_screen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: const Text(
+          child: Text(
               'Settings',
-            style: TextStyle(
-              fontSize: 45,
+            style: GoogleFonts.bodoniModa(
+                fontSize: 50,
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontWeight: FontWeight.bold
             ),
           ),
         ),
@@ -28,7 +30,7 @@ class setting_screen extends StatelessWidget {
 
   ListTile buildListTile() {
     return ListTile(
-      title: Text('Dark Mode'),
+      title: Text('Dark Mode', style: GoogleFonts.chivo()),
       trailing: Consumer<ThemeProvider>(
         builder: (context, themeNotifier, child) {
           return Switch(

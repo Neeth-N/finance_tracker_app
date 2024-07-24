@@ -1,11 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../Models/project.dart';
 
 class PieChartScreen extends StatelessWidget {
   final Project project;
 
-  PieChartScreen({required this.project});
+  const PieChartScreen({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +15,7 @@ class PieChartScreen extends StatelessWidget {
     double decPercentage = totalAmount > 0 ? (project.decAmount / totalAmount * 100) : 0;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Financial Overview')),
+      appBar: AppBar(title: Text('Financial Overview', style: GoogleFonts.chivo())),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

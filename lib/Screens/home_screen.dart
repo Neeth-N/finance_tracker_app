@@ -1,13 +1,12 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
-import 'package:finance_tracker_app/Screens/project_details_screen.dart';
 import 'package:finance_tracker_app/Screens/setting_screen.dart';
 import 'package:flutter/material.dart';
-
-import '../Models/project.dart';
 import 'main_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -47,9 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: index == 0 ? MainScreen(projectsCollection: projectsCollection) : setting_screen(),
+      body: index == 0 ? MainScreen(projectsCollection: projectsCollection) : const setting_screen(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
+      floatingActionButton: SizedBox(
         width: 75,
         height: 75,
         child: FloatingActionButton(
@@ -82,16 +81,16 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Create Project'),
+        title: const Text('Create Project'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              decoration: InputDecoration(labelText: 'Project Name'),
+              decoration: const InputDecoration(labelText: 'Project Name'),
               onChanged: (value) => projectName = value,
             ),
             TextField(
-              decoration: InputDecoration(labelText: 'Initial Amount'),
+              decoration: const InputDecoration(labelText: 'Initial Amount'),
               keyboardType: TextInputType.number,
               onChanged: (value) => initialAmount = double.tryParse(value) ?? 0,
             ),
@@ -100,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -116,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context);
               }
             },
-            child: Text('Create'),
+            child: const Text('Create'),
           ),
         ],
       ),

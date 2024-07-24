@@ -10,7 +10,7 @@ void main() async {
   runApp(
       ChangeNotifierProvider(
         create: (context) => ThemeProvider(),
-        child: MyApp(),
+        child: const MyApp(),
       )
   );
 }
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(),
+      home: const HomeScreen(),
       theme: Provider.of<ThemeProvider>(context).themeData,
     );
   }

@@ -1,9 +1,9 @@
 import 'dart:math';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
-import 'package:intl/intl.dart'; // Import this for date formatting
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../Models/project.dart';
 import '../Models/transaction.dart';
 import 'chart_screen.dart';
@@ -12,7 +12,7 @@ import 'chart_screen.dart';
 class ProjectDetailsScreen extends StatefulWidget {
   final Project project;
 
-  ProjectDetailsScreen({required this.project});
+  const ProjectDetailsScreen({super.key, required this.project});
 
   @override
   _ProjectDetailsScreenState createState() => _ProjectDetailsScreenState();
@@ -26,27 +26,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     final firestore.DocumentReference projectDoc = firestore.FirebaseFirestore.instance.collection('projects').doc(widget.project.id);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(title: Text(widget.project.name)),
-      // bottomNavigationBar: ClipRRect(
-      //   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      //   child: BottomNavigationBar(
-      //     backgroundColor: Theme.of(context).colorScheme.tertiary,
-      //     showSelectedLabels: false,
-      //     showUnselectedLabels: false,
-      //     selectedItemColor: Theme.of(context).colorScheme.inversePrimary,
-      //     elevation: 3,
-      //     items: const [
-      //       BottomNavigationBarItem(
-      //         icon: Icon(Icons.home),
-      //         label: 'Home',
-      //       ),
-      //       BottomNavigationBarItem(
-      //         icon: Icon(Icons.auto_graph_outlined),
-      //         label: 'Graph',
-      //       ),
-      //     ],
-      //   ),
-      // ),
+      appBar: AppBar(title: Text(widget.project.name, style: GoogleFonts.chivo(fontWeight: FontWeight.bold),)),
       body:buildStreamBuilder(projectDoc),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildAddTransactionButton(context, projectDoc),
@@ -58,7 +38,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       stream: projectDoc.snapshots(),
       builder: (context, projectSnapshot) {
         if (!projectSnapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (projectSnapshot.hasError) {
@@ -80,7 +60,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     .snapshots(),
                 builder: (context, transactionSnapshot) {
                   if (!transactionSnapshot.hasData) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (transactionSnapshot.hasError) {
@@ -98,49 +78,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       },
     );
   }
-
-  // StreamBuilder<firestore.DocumentSnapshot<Object?>> buildPieChartStreamBuilder(firestore.DocumentReference<Object?> projectDoc) {
-  //   return StreamBuilder<firestore.DocumentSnapshot>(
-  //     stream: projectDoc.snapshots(),
-  //     builder: (context, projectSnapshot) {
-  //       if (!projectSnapshot.hasData) {
-  //         return Center(child: CircularProgressIndicator());
-  //       }
-  //
-  //       if (projectSnapshot.hasError) {
-  //         return Center(child: Text('Error: ${projectSnapshot.error}'));
-  //       }
-  //
-  //       final updatedProject = Project.fromFirestore(projectSnapshot.data!);
-  //
-  //       return Padding(
-  //         padding: const EdgeInsets.all(16.0),
-  //         child: PieChart(
-  //           PieChartData(
-  //             sections: [
-  //               PieChartSectionData(
-  //                 value: updatedProject.incAmount,
-  //                 color: Colors.greenAccent,
-  //                 title: 'Incomes',
-  //                 radius: 50,
-  //                 titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
-  //               ),
-  //               PieChartSectionData(
-  //                 value: updatedProject.decAmount,
-  //                 color: Colors.red,
-  //                 title: 'Expenses',
-  //                 radius: 50,
-  //                 titleStyle: const TextStyle(fontSize: 16, color: Colors.white),
-  //               ),
-  //             ],
-  //             borderData: FlBorderData(show: false),
-  //             sectionsSpace: 0,
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   Widget _buildProjectSummary(BuildContext context, Project updatedProject) {
     return Container(
@@ -172,22 +109,16 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-             Text(
+            Text(
               //'Current Amount',
               _showCurrentAmount ? 'Current Amount' : 'Initial Amount',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
+              //style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600,),
+              style: GoogleFonts.chivo(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
             ),
             Text(
               '₹${_showCurrentAmount ? updatedProject.currentAmount : updatedProject.initialAmount}',
-              style: const TextStyle(
-                fontSize: 40,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+              //style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold,),
+              style: GoogleFonts.chivo(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             _buildIncomeExpenseRow(context, updatedProject),
@@ -252,19 +183,13 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-                fontWeight: FontWeight.w400,
-              ),
+              //style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w400,),
+              style: GoogleFonts.chivo(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w400),
             ),
             Text(
               '₹$amount',
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
+              //style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600,),
+              style: GoogleFonts.chivo(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600,),
             ),
           ],
         ),
@@ -283,11 +208,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             children: [
               Text(
                 'Transactions',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
+                //style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold,),
+                style: GoogleFonts.chivo(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
               ),
               GestureDetector(
                 onTap: () {
@@ -302,11 +224,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 },
                 child: Text(
                   'View Chart',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  //style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold,),
+                  style: GoogleFonts.chivo(fontSize: 12, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                 ),
               )
             ],
@@ -367,9 +286,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       Expanded(
                         child: Text(
                           transaction.description,
-                          style: const TextStyle(
+                          //style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500,),
+                          style: GoogleFonts.chivo(
                             fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w500
                           ),
                         ),
                       ),
@@ -405,7 +325,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   Widget _buildAddTransactionButton(BuildContext context, firestore.DocumentReference projectDoc) {
-    return Container(
+    return SizedBox(
       width: 75,
       height: 75,
       child: FloatingActionButton(
@@ -430,11 +350,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     );
   }
 
-  void _showTransactionDialog(BuildContext context, firestore.DocumentReference projectDoc, {Transaction? transaction, Project? updatedProject}) {
+  void _showTransactionDialog(BuildContext context, firestore.DocumentReference projectDoc) {
     String description = '';
-    double? amount = null;
+    double? amount;
     String transactionType = 'income';
-    final firestore.DocumentReference projectRef = firestore.FirebaseFirestore.instance.collection('projects').doc(projectDoc.id);
+    firestore.FirebaseFirestore.instance.collection('projects').doc(projectDoc.id);
 
     showDialog(
       context: context,
@@ -518,16 +438,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
       'type': transactionType,
     });
     _updateProjectAmounts(projectDoc, amount, transactionType);
-  }
-
-  void _updateTransaction(Transaction transaction, String description, double amount, firestore.DocumentReference projectDoc, String transactionType) {
-    double amountDifference = transactionType == 'expense' ? -amount : amount - transaction.amount;
-    firestore.FirebaseFirestore.instance.collection('transactions').doc(transaction.id).update({
-      'description': description,
-      'amount': transactionType == 'expense' ? -amount : amount,
-      'type': transactionType,
-    });
-    _updateProjectAmounts(projectDoc, amountDifference, transactionType);
   }
 
   void _updateProjectAmounts(firestore.DocumentReference projectDoc, double amount, String transactionType) {
