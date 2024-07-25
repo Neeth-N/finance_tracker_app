@@ -8,7 +8,6 @@ import '../Models/project.dart';
 import '../Models/transaction.dart';
 import 'chart_screen.dart';
 
-
 class ProjectDetailsScreen extends StatefulWidget {
   final Project project;
 
@@ -20,14 +19,44 @@ class ProjectDetailsScreen extends StatefulWidget {
 
 class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   bool _showCurrentAmount = true;
+  bool _isSearching = false;
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     final firestore.DocumentReference projectDoc = firestore.FirebaseFirestore.instance.collection('projects').doc(widget.project.id);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(title: Text(widget.project.name, style: GoogleFonts.chivo(fontWeight: FontWeight.bold),)),
-      body:buildStreamBuilder(projectDoc),
+      appBar: AppBar(
+        title: _isSearching
+            ? TextField(
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value.toLowerCase();
+            });
+          },
+          decoration: InputDecoration(
+            hintText: 'Search Transactions...',
+            hintStyle: GoogleFonts.chivo(color: Theme.of(context).colorScheme.inversePrimary.withOpacity(.60)),
+          ),
+          style: GoogleFonts.chivo(color: Colors.white),
+        )
+            : Text(widget.project.name, style: GoogleFonts.chivo(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchQuery = '';
+                }
+              });
+            },
+          ),
+        ],
+      ),
+      body: buildStreamBuilder(projectDoc),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _buildAddTransactionButton(context, projectDoc),
     );
@@ -67,7 +96,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                     return Center(child: Text('Error: ${transactionSnapshot.error}'));
                   }
 
-                  var transactions = transactionSnapshot.data!.docs.map((doc) => Transaction.fromFirestore(doc)).toList();
+                  var transactions = transactionSnapshot.data!.docs
+                      .map((doc) => Transaction.fromFirestore(doc))
+                      .where((transaction) =>
+                      transaction.description.toLowerCase().contains(_searchQuery))
+                      .toList();
 
                   return _buildTransactionList(context, transactions, updatedProject);
                 },
@@ -110,14 +143,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              //'Current Amount',
               _showCurrentAmount ? 'Current Amount' : 'Initial Amount',
-              //style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600,),
               style: GoogleFonts.chivo(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
             ),
             Text(
               '₹${_showCurrentAmount ? updatedProject.currentAmount : updatedProject.initialAmount}',
-              //style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold,),
               style: GoogleFonts.chivo(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -183,13 +213,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           children: [
             Text(
               title,
-              //style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w400,),
               style: GoogleFonts.chivo(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w400),
             ),
             Text(
               '₹$amount',
-              //style: const TextStyle(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600,),
-              style: GoogleFonts.chivo(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600,),
+              style: GoogleFonts.chivo(fontSize: 15, color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -208,13 +236,11 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             children: [
               Text(
                 'Transactions',
-                //style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold,),
                 style: GoogleFonts.chivo(fontSize: 18, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
               ),
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                  });
+                  setState(() {});
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -224,7 +250,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                 },
                 child: Text(
                   'View Chart',
-                  //style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold,),
                   style: GoogleFonts.chivo(fontSize: 12, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
                 ),
               )
@@ -257,7 +282,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6.0,horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
               child: Container(
                 width: MediaQuery.of(context).size.width - 30,
                 decoration: BoxDecoration(
@@ -286,11 +311,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                       Expanded(
                         child: Text(
                           transaction.description,
-                          //style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500,),
-                          style: GoogleFonts.chivo(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500
-                          ),
+                          style: GoogleFonts.chivo(fontSize: 16, fontWeight: FontWeight.w500),
                         ),
                       ),
                       Column(
@@ -305,7 +326,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                             ),
                           ),
                           Text(
-                            DateFormat('dd MMM yyyy').format(transaction.date), // Format date as needed
+                            DateFormat('dd MMM yyyy').format(transaction.date),
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
@@ -354,7 +375,6 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     String description = '';
     double? amount;
     String transactionType = 'income';
-    firestore.FirebaseFirestore.instance.collection('projects').doc(projectDoc.id);
 
     showDialog(
       context: context,
