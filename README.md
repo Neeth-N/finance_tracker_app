@@ -1,5 +1,5 @@
 # Finance Tracker App 
-## By Abhineeth N
+**By Abhineeth N**
 
 Welcome to the Finance Tracker App! This app helps you manage your finances by tracking your income and expenses. It includes a real-time pie chart representation of your transactions, categorized by income and expenses.
 
