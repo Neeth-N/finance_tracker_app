@@ -157,9 +157,9 @@ class ProjectTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 4.0), // Space between project info and date
+            const SizedBox(height: 4.0),
             Text(
-              DateFormat('dd MMM yyyy').format(project.date), // Adjust format as needed
+              DateFormat('dd MMM yyyy').format(project.date),
               style: TextStyle(color: Colors.grey[600]),
             ),
           ],
