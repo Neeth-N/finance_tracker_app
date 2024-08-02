@@ -84,7 +84,7 @@ class PieChartScreen extends StatelessWidget {
         _buildLegendItem(
           color: Colors.red,
           title: 'Expenses',
-          amount: -updatedProject.decAmount, // Use absolute value for display
+          amount: -updatedProject.decAmount,
         ),
       ],
     );
